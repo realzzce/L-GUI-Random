@@ -7,10 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"fyne.io/fyne"
-	"fyne.io/fyne/app"
-	"fyne.io/fyne/theme"
-	"fyne.io/fyne/widget"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/theme"
+	"fyne.io/fyne/v2/widget"
 )
 
 func random(min, max int) int {
@@ -27,7 +29,7 @@ func random(min, max int) int {
 }
 
 func main() {
-	var logstr string
+	var logStr string
 	// default 0 - 99
 	var Max, Min int
 	Min = 0
@@ -38,12 +40,11 @@ func main() {
 	w.Resize(fyne.NewSize(300, 150))
 
 	inputMin := widget.NewEntry()
-	inputMin.SetPlaceHolder("MIN")
+	inputMin.SetPlaceHolder("MIN ...")
 	inputMax := widget.NewEntry()
-	inputMax.SetPlaceHolder("MAX - 1")
+	inputMax.SetPlaceHolder("MAX - 1 ...")
 
 	inputMin.OnChanged = func(content string) {
-		fmt.Println(inputMin.Text)
 		inputA := strings.TrimSpace(inputMin.Text)
 		if inputMin.Text == "" || inputMin.Text == " " {
 			Min = 0
@@ -73,43 +74,43 @@ func main() {
 
 	}
 	hello := widget.NewLabel("Hello")
-	lognum := widget.NewLabel("")
+	logNum := widget.NewLabel("")
 
-	w.SetContent(widget.NewVBox(
-		widget.NewHBox(
-			inputMin,
-			inputMax,
-		),
+	inputContent := container.New(layout.NewGridLayoutWithColumns(2),
+		inputMin, inputMax)
+
+	buttonContent := container.New(layout.NewGridLayoutWithColumns(3),
+		widget.NewButton("Random", func() {
+			randomtext := fmt.Sprint(random(Min, Max))
+			hello.SetText(randomtext)
+		}),
+		widget.NewButton("Random * 10", func() {
+			logStr = ""
+			for i := 1; i <= 10; i++ {
+				randomtext := fmt.Sprint(random(Min, Max))
+				hello.SetText(randomtext)
+				if i == 10 {
+					logStr = logStr + randomtext
+				} else {
+					logStr = logStr + randomtext + " , "
+				}
+				logNum.SetText(logStr)
+			}
+		}),
+		widget.NewButton("Clear", func() {
+			hello.SetText("")
+			logNum.SetText("")
+		}),
+	)
+
+	// layout
+	w.SetContent(container.New(layout.NewVBoxLayout(),
+		inputContent,
 		widget.NewSeparator(),
 		hello,
 		widget.NewSeparator(),
-		widget.NewHBox(
-			widget.NewButton("Random", func() {
-				fmt.Println(Min, Max)
-				randomtext := fmt.Sprint(random(Min, Max))
-				hello.SetText(randomtext)
-			}),
-			widget.NewButton("Random * 10", func() {
-				logstr = ""
-				for i := 1; i <= 10; i++ {
-					randomtext := fmt.Sprint(random(Min, Max))
-					hello.SetText(randomtext)
-					if i == 10 {
-						logstr = logstr + randomtext
-					} else {
-						logstr = logstr + randomtext + " , "
-					}
-					lognum.SetText(logstr)
-				}
-			}),
-			widget.NewButton("Clear", func() {
-				hello.SetText("")
-				lognum.SetText("")
-			}),
-		),
-		lognum,
-	),
-	)
+		buttonContent,
+		logNum))
 
 	w.ShowAndRun()
 }
